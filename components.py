@@ -163,6 +163,21 @@ class Board:
     def flagged_count(self) -> int:
         # TODO: Return current number of flagged cells.
         return sum(1 for cell in self.cells if cell.state.is_flagged)
+        
+    #이슈 4 구현(1/2)
+    def reveal_hint(self) -> None:
+        # 힌트로 열 수 있는 후보군(지뢰X, 오픈X, 깃발X)을 모두 찾는다
+        CANDidates = []
+        for r in range(self.rows):
+            for c in range(self.cols):
+                cell = self.cells[self.index(c, r)]
+                if not cell.state.is_mine and not cell.state.is_revealed and not cell.state.is_flagged:
+                    CANDidates.append((c, r))
+        
+        # 후보가 있다면 그 중 하나를 랜덤으로 골라 연다
+        if CANDidates:
+            c, r = random.choice(CANDidates)
+            self.reveal(c, r)
     
     def _reveal_all_mines(self) -> None:
         """Reveal all mines; called on game over."""
@@ -178,3 +193,4 @@ class Board:
             for cell in self.cells:
                 if not cell.state.is_revealed and not cell.state.is_mine:
                     cell.state.is_revealed = True
+
