@@ -76,11 +76,15 @@ class Renderer:
             self.screen,
             config.color_header,
             Rect(0, 0, config.width, config.margin_top - 4),
-        )
+        )        
+        # 이슈5 구현        
+        # 시간 텍스트만 조금 더 강조하기 위해 색상만 변경 
         left_text = f"Mines: {remaining_mines}"
-        right_text = f"Time: {time_text}"
-        left_label = self.header_font.render(left_text, True, config.color_header_text)
-        right_label = self.header_font.render(right_text, True, config.color_header_text)
+        right_text = f"Time: {time_text}"        
+        left_label = self.header_font.render(left_text, True, config.color_header_text)        
+        # 여기서 색상을 노란색(255,255,0)으로 직접 지정
+        right_label = self.header_font.render(right_text, True, (255, 255, 0)) 
+        
         self.screen.blit(left_label, (10, 12))
         self.screen.blit(right_label, (config.width - right_label.get_width() - 10, 12))
 
