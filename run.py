@@ -69,21 +69,32 @@ class Renderer:
                     ],
                 )
         pygame.draw.rect(self.screen, config.color_grid, rect, 1)
-
-    def draw_header(self, remaining_mines: int, time_text: str) -> None:
+        
+    # 이슈6 구현(1/3) 
+    # 매개변수로 score: int추가
+    def draw_header(self, remaining_mines: int, time_text: str, score: int) -> None:
         """Draw the header bar containing remaining mines and elapsed time."""
         pygame.draw.rect(
             self.screen,
             config.color_header,
             Rect(0, 0, config.width, config.margin_top - 4),
-        )
+        )        
+        
         left_text = f"Mines: {remaining_mines}"
-        right_text = f"Time: {time_text}"
-        left_label = self.header_font.render(left_text, True, config.color_header_text)
+        right_text = f"Time: {time_text}"        
+        center_text = f"Score: {score}"  # 점수 텍스트
+
+        left_label = self.header_font.render(left_text, True, config.color_header_text)        
         right_label = self.header_font.render(right_text, True, config.color_header_text)
+        center_label = self.header_font.render(center_text, True, config.color_result) # 노란색(result 색) 활용
+        
         self.screen.blit(left_label, (10, 12))
         self.screen.blit(right_label, (config.width - right_label.get_width() - 10, 12))
 
+        # 가운데에 점수 그리기
+        center_rect = center_label.get_rect(center=(config.width // 2, 12 + left_label.get_height() // 2))
+        self.screen.blit(center_label, center_rect)
+        
     def draw_result_overlay(self, text: str | None) -> None:
         """Draw a semi-transparent overlay with centered result text, if any."""
         if not text:
@@ -203,7 +214,10 @@ class Game:
         self.screen.fill(config.color_bg)
         remaining = max(0, config.num_mines - self.board.flagged_count())
         time_text = self._format_time(self._elapsed_ms())
-        self.renderer.draw_header(remaining, time_text)
+        
+        CurrentScore = self.calculate_score() # 이슈6 구현(2/3) 점수를 계산해서
+        self.renderer.draw_header(remaining, time_text, CurrentScore) # 받기
+        
         now = pygame.time.get_ticks()
         for r in range(self.board.rows):
             for c in range(self.board.cols):
@@ -227,6 +241,26 @@ class Game:
         self.draw()
         self.clock.tick(config.fps)
         return True
+
+    # 이슈6 구현(3/3)
+    def calculate_score(self) -> int:
+        # 기본 점수 (칸당 5점)
+        base_score = self.board.revealed_count * 5
+    
+        # 난이도별 시간 제한 설정 (초 단위)
+        # cols 크기를 보고 난이도를 추측 (9칸:쉬움, 16칸:보통, 나머지:어려움)
+        if self.board.cols == 9:
+            time_limit = 300   # 5분
+        elif self.board.cols == 16:
+            time_limit = 600   # 10분
+        else:
+            time_limit = 1200  # 20분
+        # 경과 시간 (초 단위)
+        elapsed_seconds = self._elapsed_ms() // 1000        
+        # 시간 보너스 계산 (남은 시간만큼 점수, 음수=시간초과면 0)
+        time_bonus = max(0, time_limit - elapsed_seconds)
+    
+        return base_score + time_bonus
 
 
 def main() -> int:
