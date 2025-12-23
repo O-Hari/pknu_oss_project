@@ -22,6 +22,7 @@
 
 ### 숫자 색상 표기 기능 (#2)
 <img width="554" height="624" alt="text_color" src="https://github.com/user-attachments/assets/0fb778a7-f313-4a66-b13b-c5a0917adc06" />
+
 게임 보드에 표시되는 숫자에 서로 다른 색상을 적용하여 시각적 구분을 강화했습니다.
 
 | 숫자 | 색상 |
@@ -42,7 +43,9 @@
 ### 난이도 설정 기능 (#3)
 <img width="330" height="400" alt="diff_easy" src="https://github.com/user-attachments/assets/a506327c-346f-4c04-87fb-1bb8d596a7ea" />
 <img width="554" height="624" alt="diff_normal" src="https://github.com/user-attachments/assets/73aa1f95-4d2a-4acf-9019-f350c31d9baa" />
+
 <img width="810" height="880" alt="diff_hard" src="https://github.com/user-attachments/assets/2fbaf201-1bb0-492b-9444-20a7ed83fc11" />
+
 게임 시작 시 난이도를 선택할 수 있으며, 난이도에 따라 보드 크기와 지뢰 개수가 달라집니다.
 
 | 난이도    | 보드 크기   | 지뢰 수 | 지뢰 비율 |
@@ -58,6 +61,7 @@
 
 ### 힌트 기능 (#4)
 <img width="554" height="624" alt="hint" src="https://github.com/user-attachments/assets/c3dac7d7-7300-45de-8d1b-de7d58f8a1fe" />
+
 플레이 도중 **지뢰가 없는 안전한 칸 1개를 하이라이트**하는 힌트 기능을 제공합니다.
 
 * `H` 키를 누르면 힌트 사용 가능
