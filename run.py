@@ -77,12 +77,14 @@ class Renderer:
             self.screen,
             config.color_header,
             Rect(0, 0, config.width, config.margin_top - 4),
-        )
+        )        
+        # 이슈5 구현        
+        # 시간 텍스트만 조금 더 강조하기 위해 색상만 변경 
         left_text = f"Mines: {remaining_mines}"
-        right_text = f"Time: {time_text}"
-                
-        left_label = self.header_font.render(left_text, True, config.color_header_text)
-        right_label = self.header_font.render(right_text, True, config.color_header_text)        
+        right_text = f"Time: {time_text}"        
+        left_label = self.header_font.render(left_text, True, config.color_header_text)        
+        # 여기서 색상을 노란색(255,255,0)으로 직접 지정
+        right_label = self.header_font.render(right_text, True, (255, 255, 0))        
         # added: center difficulty text
         center_label = self.header_font.render(difficulty_text, True, config.color_header_text)
         self.screen.blit(left_label, (10, 12))
@@ -204,11 +206,12 @@ class Game:
         return pygame.time.get_ticks() - self.start_ticks_ms
 
     def _format_time(self, ms: int) -> str:
-        """Format milliseconds as mm:ss string."""
+        """Format milliseconds as mm:ss (total s) string."""
         total_seconds = ms // 1000
         minutes = total_seconds // 60
-        seconds = total_seconds % 60
-        return f"{minutes:02d}:{seconds:02d}"
+        seconds = total_seconds % 60        
+        # issue 5: (@@s) 
+        return f"{minutes:02d}:{seconds:02d} ({total_seconds}s)"
 
     def _result_text(self) -> str | None:
         """Return result label to display, or None if game continues."""
