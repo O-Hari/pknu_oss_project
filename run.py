@@ -160,6 +160,23 @@ class InputController:
 class Game:
     """Main application object orchestrating loop and high-level state."""
 
+    # added: load highscore from file
+    def load_highscore(self) -> int:
+        try:
+            with open("highscore.txt", "r") as f:
+                return int(f.read().strip())
+        except:
+            return 0  
+
+    # added: save high score in file
+    def save_highscore(self, score: int):
+        try:
+            with open("highscore.txt", "w") as f:
+                f.write(str(score))
+        except:
+            pass
+
+    # edited: highscore loading added
     def __init__(self):
         pygame.init()
         pygame.display.set_caption(config.title)
@@ -173,6 +190,9 @@ class Game:
         self.started = False
         self.start_ticks_ms = 0
         self.end_ticks_ms = 0
+        
+        # this one has added
+        self.highscore = self.load_highscore()
 
     def reset(self):
         """Reset the game state and start a new board."""
@@ -236,8 +256,15 @@ class Game:
                     self.reset()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 self.input.handle_mouse(event.pos, event.button)
+        # edited: checking game over & reload highscore
         if (self.board.game_over or self.board.win) and self.started and not self.end_ticks_ms:
-            self.end_ticks_ms = pygame.time.get_ticks()
+            self.end_ticks_ms = pygame.time.get_ticks()            
+            # added: score calculate
+            final_score = self.calculate_score()
+            if final_score > self.highscore:
+                self.highscore = final_score
+                self.save_highscore(self.highscore)
+
         self.draw()
         self.clock.tick(config.fps)
         return True
