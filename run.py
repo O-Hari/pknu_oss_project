@@ -70,8 +70,9 @@ class Renderer:
                 )
         pygame.draw.rect(self.screen, config.color_grid, rect, 1)
 
-    def draw_header(self, remaining_mines: int, time_text: str) -> None:
-        """Draw the header bar containing remaining mines and elapsed time."""
+    # issue3, parameter difficulty_text added
+    def draw_header(self, remaining_mines: int, time_text: str, difficulty_text: str) -> None:
+        """Draw the header bar containing remaining mines, time, and DIFFICULTY."""
         pygame.draw.rect(
             self.screen,
             config.color_header,
@@ -79,11 +80,18 @@ class Renderer:
         )
         left_text = f"Mines: {remaining_mines}"
         right_text = f"Time: {time_text}"
+                
         left_label = self.header_font.render(left_text, True, config.color_header_text)
-        right_label = self.header_font.render(right_text, True, config.color_header_text)
+        right_label = self.header_font.render(right_text, True, config.color_header_text)        
+        # added: center difficulty text
+        center_label = self.header_font.render(difficulty_text, True, config.color_header_text)
         self.screen.blit(left_label, (10, 12))
         self.screen.blit(right_label, (config.width - right_label.get_width() - 10, 12))
+        # draw in center
+        center_rect = center_label.get_rect(center=(config.width // 2, 12 + left_label.get_height() // 2))
+        self.screen.blit(center_label, center_rect)
 
+    
     def draw_result_overlay(self, text: str | None) -> None:
         """Draw a semi-transparent overlay with centered result text, if any."""
         if not text:
@@ -172,6 +180,20 @@ class Game:
         self.started = False
         self.start_ticks_ms = 0
         self.end_ticks_ms = 0
+        
+        # issue3
+    def set_difficulty(self, cols, rows, mines):
+        config.cols = cols
+        config.rows = rows
+        config.num_mines = mines
+                
+        config.width = config.margin_left + config.cols * config.cell_size + config.margin_right
+        config.height = config.margin_top + config.rows * config.cell_size + config.margin_bottom
+        config.display_dimension = (config.width, config.height)
+                
+        self.screen = pygame.display.set_mode(config.display_dimension)
+                
+        self.reset()
 
     def _elapsed_ms(self) -> int:
         """Return elapsed time in milliseconds (stops when game ends)."""
@@ -203,7 +225,17 @@ class Game:
         self.screen.fill(config.color_bg)
         remaining = max(0, config.num_mines - self.board.flagged_count())
         time_text = self._format_time(self._elapsed_ms())
-        self.renderer.draw_header(remaining, time_text)
+        
+        # added: difficulty text setting
+        if self.board.cols == 9:
+            diff_text = "EASY"
+        elif self.board.cols == 16:
+            diff_text = "NORMAL"
+        else:
+            diff_text = "HARD"
+        # added: paramater diff_text added
+        self.renderer.draw_header(remaining, time_text, diff_text)
+        # same--
         now = pygame.time.get_ticks()
         for r in range(self.board.rows):
             for c in range(self.board.cols):
@@ -219,6 +251,16 @@ class Game:
                 return False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
+                    self.reset()
+                # issue3
+                elif event.key == pygame.K_1: # 1=easy
+                    self.set_difficulty(9, 9, 10)
+                    self.reset()
+                elif event.key == pygame.K_2: # 2=normal
+                    self.set_difficulty(16, 16, 40)
+                    self.reset()
+                elif event.key == pygame.K_3: # 3=hard
+                    self.set_difficulty(24, 24, 99)
                     self.reset()                    
                 # issue4: hilighting hint
                 elif event.key == pygame.K_h:                    
