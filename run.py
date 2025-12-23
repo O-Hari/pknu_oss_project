@@ -70,9 +70,12 @@ class Renderer:
                 )
         pygame.draw.rect(self.screen, config.color_grid, rect, 1)
 
+    # 이슈6 구현(1/3) 
+    # 매개변수로 score: int추가
     # issue3, parameter difficulty_text added
-    def draw_header(self, remaining_mines: int, time_text: str, difficulty_text: str) -> None:
-        """Draw the header bar containing remaining mines, time, and DIFFICULTY."""
+    def draw_header(self, remaining_mines: int, time_text: str, difficulty_text: str, score: int | None = None) -> None:
+        """Draw the header bar containing remaining mines, time, and DIFFICULTY, and scores."""
+
         pygame.draw.rect(
             self.screen,
             config.color_header,
@@ -81,19 +84,23 @@ class Renderer:
         # 이슈5 구현        
         # 시간 텍스트만 조금 더 강조하기 위해 색상만 변경 
         left_text = f"Mines: {remaining_mines}"
-        right_text = f"Time: {time_text}"        
+        right_text = f"Time: {time_text}"
+        
         left_label = self.header_font.render(left_text, True, config.color_header_text)        
-        # 여기서 색상을 노란색(255,255,0)으로 직접 지정
-        right_label = self.header_font.render(right_text, True, (255, 255, 0))        
-        # added: center difficulty text
-        center_label = self.header_font.render(difficulty_text, True, config.color_header_text)
+        right_label = self.header_font.render(right_text, True, (255, 255, 0))
+        
         self.screen.blit(left_label, (10, 12))
         self.screen.blit(right_label, (config.width - right_label.get_width() - 10, 12))
-        # draw in center
-        center_rect = center_label.get_rect(center=(config.width // 2, 12 + left_label.get_height() // 2))
-        self.screen.blit(center_label, center_rect)
-
-    
+        
+        diff_label = self.header_font.render(difficulty_text, True, config_color_header_text)
+        diff_rect = diff_label.get_rect(center=(config.width//2, 12+diff_label.get_height()//2))
+        self.screen.blit(diff_label, diff_rect)
+        
+        if score is not None:
+            score_label = self.font.render(f"Score: {score}", True, config.color_header_text)
+            score_rect = score_label.get_rect(center=(config.width//2, 12+diff_label.get_height()+10))
+            self.screen.blit(score_label, score_rect)
+        
     def draw_result_overlay(self, text: str | None) -> None:
         """Draw a semi-transparent overlay with centered result text, if any."""
         if not text:
@@ -159,6 +166,23 @@ class InputController:
 class Game:
     """Main application object orchestrating loop and high-level state."""
 
+    # added: load highscore from file
+    def load_highscore(self) -> int:
+        try:
+            with open("highscore.txt", "r") as f:
+                return int(f.read().strip())
+        except:
+            return 0  
+
+    # added: save high score in file
+    def save_highscore(self, score: int):
+        try:
+            with open("highscore.txt", "w") as f:
+                f.write(str(score))
+        except:
+            pass
+
+    # edited: highscore loading added
     def __init__(self):
         pygame.init()
         pygame.display.set_caption(config.title)
@@ -172,6 +196,9 @@ class Game:
         self.started = False
         self.start_ticks_ms = 0
         self.end_ticks_ms = 0
+        
+        # this one has added
+        self.highscore = self.load_highscore()
 
     def reset(self):
         """Reset the game state and start a new board."""
@@ -236,9 +263,10 @@ class Game:
             diff_text = "NORMAL"
         else:
             diff_text = "HARD"
-        # added: paramater diff_text added
-        self.renderer.draw_header(remaining, time_text, diff_text)
-        # same--
+        
+        current_score = self.calculate_score()
+        self.renderer.draw_header(remaining, time_text, diff_text, current_score)
+
         now = pygame.time.get_ticks()
         for r in range(self.board.rows):
             for c in range(self.board.cols):
@@ -273,11 +301,38 @@ class Game:
                         self.highlight_until_ms = pygame.time.get_ticks() + config.highlight_duration_ms
             if event.type == pygame.MOUSEBUTTONDOWN:
                 self.input.handle_mouse(event.pos, event.button)
+        # edited: checking game over & reload highscore
         if (self.board.game_over or self.board.win) and self.started and not self.end_ticks_ms:
-            self.end_ticks_ms = pygame.time.get_ticks()
+            self.end_ticks_ms = pygame.time.get_ticks()            
+            # added: score calculate
+            final_score = self.calculate_score()
+            if final_score > self.highscore:
+                self.highscore = final_score
+                self.save_highscore(self.highscore)
+
         self.draw()
         self.clock.tick(config.fps)
         return True
+
+    # 이슈6 구현(3/3)
+    def calculate_score(self) -> int:
+        # 기본 점수 (칸당 5점)
+        base_score = self.board.revealed_count * 5
+    
+        # 난이도별 시간 제한 설정 (초 단위)
+        # cols 크기를 보고 난이도를 추측 (9칸:쉬움, 16칸:보통, 나머지:어려움)
+        if self.board.cols == 9:
+            time_limit = 300   # 5분
+        elif self.board.cols == 16:
+            time_limit = 600   # 10분
+        else:
+            time_limit = 1200  # 20분
+        # 경과 시간 (초 단위)
+        elapsed_seconds = self._elapsed_ms() // 1000        
+        # 시간 보너스 계산 (남은 시간만큼 점수, 음수=시간초과면 0)
+        time_bonus = max(0, time_limit - elapsed_seconds)
+    
+        return base_score + time_bonus
 
 
 def main() -> int:
