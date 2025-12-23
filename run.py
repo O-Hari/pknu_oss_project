@@ -92,7 +92,7 @@ class Renderer:
         self.screen.blit(left_label, (10, 12))
         self.screen.blit(right_label, (config.width - right_label.get_width() - 10, 12))
         
-        diff_label = self.header_font.render(difficulty_text, True, config_color_header_text)
+        diff_label = self.header_font.render(difficulty_text, True, config.color_header_text)
         diff_rect = diff_label.get_rect(center=(config.width//2, 12+diff_label.get_height()//2))
         self.screen.blit(diff_label, diff_rect)
         
