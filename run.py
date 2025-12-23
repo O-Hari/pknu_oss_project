@@ -186,11 +186,12 @@ class Game:
         return pygame.time.get_ticks() - self.start_ticks_ms
 
     def _format_time(self, ms: int) -> str:
-        """Format milliseconds as mm:ss string."""
+        """Format milliseconds as mm:ss (total s) string."""
         total_seconds = ms // 1000
         minutes = total_seconds // 60
-        seconds = total_seconds % 60
-        return f"{minutes:02d}:{seconds:02d}"
+        seconds = total_seconds % 60        
+        # issue 5: (@@s) 
+        return f"{minutes:02d}:{seconds:02d} ({total_seconds}s)"
 
     def _result_text(self) -> str | None:
         """Return result label to display, or None if game continues."""
