@@ -219,7 +219,13 @@ class Game:
                 return False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
-                    self.reset()
+                    self.reset()                    
+                # issue4: hilighting hint
+                elif event.key == pygame.K_h:                    
+                    hint_coord = self.board.get_hint_coordinates()                                        
+                    if hint_coord:                        
+                        self.highlight_targets = {hint_coord}                        
+                        self.highlight_until_ms = pygame.time.get_ticks() + config.highlight_duration_ms
             if event.type == pygame.MOUSEBUTTONDOWN:
                 self.input.handle_mouse(event.pos, event.button)
         if (self.board.game_over or self.board.win) and self.started and not self.end_ticks_ms:
